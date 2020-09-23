@@ -1,0 +1,41 @@
+name: 'Terraform apply'
+description: 'Terraform apply on any commits to target branch'
+inputs:
+  working-directory:
+    description: ''
+    required: true
+    default: '.'
+  aws-access-key-id:
+    description: ''
+    required: false
+  aws-secret-access-key:
+    description: ''
+    required: false
+outputs:
+  apply-stdout:
+    description: Apply stdout
+    value: ${{ steps.apply.outputs.stdout }}
+  apply-stderr:
+    description: Apply stderr
+    value: ${{ steps.apply.outputs.stderr }}
+runs:
+  using: composite
+  steps:
+    - run: terraform fmt -check -recursive
+      id: fmt
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+    - run: terraform init
+      id: init
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+    - run: terraform validate
+      id: validate
+      working-directory: "${{ inputs.working-directory }}"
+      shell: bash
+    - run: terraform apply -input=false -auto-approve
+      id: apply
+      working-directory: "${{ inputs.working-directory }}"
+      env:
+        GITHUB_TOKEN: "${{ inputs.GITHUB_TOKEN }}"
+      shell: bash
